@@ -14,10 +14,10 @@ export default function LeadDetailPage() {
     api.lead(Number(params.id)).then(setLead).catch(() => setLead(null));
   }, [params?.id]);
 
-  if (!lead) return <div className="card p-6">Loading lead...</div>;
+  if (!lead) return <div className="card p-6 text-muted-foreground">Loading lead...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         eyebrow={lead.external_id}
         title={lead.company_name || lead.contact_name}
@@ -40,11 +40,13 @@ export default function LeadDetailPage() {
           <h3 className="chart-title mb-3">Activity Timeline</h3>
           <div className="space-y-3">
             {(lead.activities || []).length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">No dated activities yet.</p>
+              <p className="text-sm text-muted-foreground">No dated activities yet.</p>
             ) : (
               lead.activities.map((act: any) => (
-                <div key={act.id} className="border-l-2 border-[var(--blue)] pl-3">
-                  <p className="text-xs text-[var(--muted)]">{act.activity_date || "No date"}</p>
+                <div key={act.id} className="border-l-2 border-lavender pl-3">
+                  <p className="font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">
+                    {act.activity_date || "No date"}
+                  </p>
                   <p className="text-sm">{act.activity_type.replaceAll("_", " ")}</p>
                 </div>
               ))
@@ -58,8 +60,8 @@ export default function LeadDetailPage() {
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-[var(--border)] py-2">
-      <span className="text-[var(--muted)]">{label}</span>
+    <div className="flex min-h-11 justify-between gap-4 border-b border-ink/10 py-2">
+      <span className="font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">{label}</span>
       <span className="text-right">{value || "—"}</span>
     </div>
   );

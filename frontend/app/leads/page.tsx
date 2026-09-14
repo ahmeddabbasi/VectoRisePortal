@@ -2,28 +2,29 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useCategories } from "@/components/CategoriesProvider";
 import { FilterBar } from "@/components/FilterBar";
 import { PageHeader } from "@/components/PageHeader";
 import { api, Filters } from "@/lib/api";
 
-export default function LeadsPage() {
-  const [filters, setFilters] = useState<Filters>({ employee: "all", category: "all", search: "" });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
+const DEFAULT_FILTERS: Filters = { employee: "all", category: "all", search: "" };
 
-  useEffect(() => {
-    api.categories().then((r) => setCategories(r.categories));
-  }, []);
+export default function LeadsPage() {
+  const categories = useCategories();
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [leads, setLeads] = useState<any[]>(() => api.getCached(api.paths.leads(DEFAULT_FILTERS)) ?? []);
 
   useEffect(() => {
     api.leads(filters).then(setLeads).catch(() => setLeads([]));
   }, [filters]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        title="Leads"
-        description="Unified view across all connected Google Sheet sources."
+        eyebrow="02 / Pipeline"
+        title="Unified"
+        accent="leads."
+        description="One operational picture across all connected Google Sheet sources."
       />
       <FilterBar filters={filters} onChange={setFilters} categories={categories} showSearch />
       <div className="card overflow-x-auto">

@@ -57,33 +57,33 @@ function ActivityTooltip({ active, payload }: { active?: boolean; payload?: Arra
 
   return (
     <div
-      className="rounded-md p-3 text-xs shadow-lg"
+      className="rounded-2xl p-3 text-xs shadow-2xl"
       style={{ background: CHART.tooltipBg, border: `1px solid ${CHART.tooltipBorder}` }}
     >
-      <p className="mb-2 font-medium text-[var(--text)]">{row.label}</p>
+      <p className="mb-2 font-medium text-ink">{row.label}</p>
       <div className="space-y-1">
         {ACTIVITY_SERIES.map((series) => {
           const value = row[series.key as keyof typeof row] as number;
           if (!value) return null;
           return (
             <div key={series.key} className="flex items-center justify-between gap-6">
-              <span className="flex items-center gap-2 text-[var(--muted)]">
+              <span className="flex items-center gap-2 text-muted-foreground">
                 <span className="inline-block h-2 w-2 rounded-full" style={{ background: series.color }} />
                 {series.label}
               </span>
-              <span className="font-medium text-[var(--text)]">{value}</span>
+              <span className="font-medium text-ink">{value}</span>
             </div>
           );
         })}
       </div>
-      <div className="mt-2 space-y-1 border-t border-[var(--border)] pt-2 text-[var(--muted)]">
+      <div className="mt-2 space-y-1 border-t border-ink/10 pt-2 text-muted-foreground">
         <div className="flex justify-between gap-6">
           <span>Outreach sent</span>
-          <span className="text-[var(--text)]">{row.outreach}</span>
+          <span className="text-ink">{row.outreach}</span>
         </div>
         <div className="flex justify-between gap-6 font-medium">
           <span>Total activity</span>
-          <span className="text-[var(--text)]">{row.total}</span>
+          <span className="text-ink">{row.total}</span>
         </div>
       </div>
     </div>
@@ -96,21 +96,21 @@ export function ActivityTrendChart({ data }: { data: any[] }) {
   const tickInterval = chartData.length > 14 ? Math.ceil(chartData.length / 7) - 1 : 0;
 
   return (
-    <div className="card h-[22rem] p-4">
+    <div className="card h-[22rem] p-5">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
+          <p className="chart-subtitle mb-1">02 / Volume</p>
           <h3 className="chart-title">Daily Activity Trend</h3>
-          <p className="chart-subtitle">Daily counts by activity type</p>
         </div>
         {chartData.length > 0 ? (
-          <p className="text-xs text-[var(--muted)]">
+          <p className="font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">
             {chartData.length} days · {totalActivities.toLocaleString()} activities
           </p>
         ) : null}
       </div>
 
       {chartData.length === 0 ? (
-        <div className="flex h-[85%] items-center justify-center text-sm text-[var(--muted)]">
+        <div className="flex h-[85%] items-center justify-center text-sm text-muted-foreground">
           No activity recorded for this period.
         </div>
       ) : (
@@ -140,7 +140,8 @@ export function ActivityTrendChart({ data }: { data: any[] }) {
 
 export function StageBarChart({ data }: { data: { stage: string; count: number }[] }) {
   return (
-    <div className="card h-80 p-4">
+    <div className="card h-80 p-5">
+      <p className="chart-subtitle mb-1">03 / Stages</p>
       <h3 className="chart-title mb-4">Current Stage Distribution</h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
@@ -157,7 +158,8 @@ export function StageBarChart({ data }: { data: { stage: string; count: number }
 
 export function FunnelChart({ data }: { data: { stage: string; count: number }[] }) {
   return (
-    <div className="card h-80 p-4">
+    <div className="card h-80 p-5">
+      <p className="chart-subtitle mb-1">04 / Funnel</p>
       <h3 className="chart-title mb-4">Pipeline Funnel</h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart data={data}>
@@ -174,7 +176,8 @@ export function FunnelChart({ data }: { data: { stage: string; count: number }[]
 
 export function EmployeeCompareChart({ data }: { data: any[] }) {
   return (
-    <div className="card h-80 p-4">
+    <div className="card h-80 p-5">
+      <p className="chart-subtitle mb-1">05 / Team</p>
       <h3 className="chart-title mb-4">Employee Activity Comparison</h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart data={data}>
@@ -195,7 +198,8 @@ export function EmployeeCompareChart({ data }: { data: any[] }) {
 
 export function CategoryCompareChart({ data }: { data: any[] }) {
   return (
-    <div className="card h-80 p-4">
+    <div className="card h-80 p-5">
+      <p className="chart-subtitle mb-1">06 / Categories</p>
       <h3 className="chart-title mb-4">Category Performance</h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart data={data}>

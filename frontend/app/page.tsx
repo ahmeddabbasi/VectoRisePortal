@@ -1,49 +1,42 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ActivityTrendChart, CategoryCompareChart, EmployeeCompareChart, FunnelChart, StageBarChart } from "@/components/Charts";
+import { ActivityTrendChart, CategoryCompareChart, EmployeeCompareChart, FunnelChart, StageBarChart } from "@/components/charts-dynamic";
+import { useCategories } from "@/components/CategoriesProvider";
 import { FilterBar } from "@/components/FilterBar";
 import { KpiCard } from "@/components/KpiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { api, DEFAULT_PERIOD, Filters } from "@/lib/api";
 
+const DEFAULT_FILTERS: Filters = { period: DEFAULT_PERIOD, employee: "all", category: "all" };
+
 export default function DashboardPage() {
-  const [filters, setFilters] = useState<Filters>({ period: DEFAULT_PERIOD, employee: "all", category: "all" });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [overview, setOverview] = useState<any>(null);
-  const [activity, setActivity] = useState<any[]>([]);
-  const [pipeline, setPipeline] = useState<any>(null);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [categoriesPerf, setCategoriesPerf] = useState<any[]>([]);
+  const categories = useCategories();
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [overview, setOverview] = useState<any>(() => api.getCached(api.paths.overview(DEFAULT_FILTERS)));
+  const [activity, setActivity] = useState<any[]>(() => api.getCached<{ series: any[] }>(api.paths.activity(DEFAULT_FILTERS))?.series ?? []);
+  const [pipeline, setPipeline] = useState<any>(() => api.getCached(api.paths.pipeline(DEFAULT_FILTERS)));
+  const [employees, setEmployees] = useState<any[]>(() => api.getCached<any>(api.paths.summary(DEFAULT_FILTERS))?.employees ?? []);
+  const [categoriesPerf, setCategoriesPerf] = useState<any[]>(() => api.getCached<any>(api.paths.summary(DEFAULT_FILTERS))?.categories ?? []);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.categories().then((r) => setCategories(r.categories)).catch(() => {});
-  }, []);
-
-  useEffect(() => {
     setError(null);
-    Promise.all([
-      api.overview(filters),
-      api.activity(filters),
-      api.pipeline(filters),
-      api.employeePerformance(filters.period),
-      api.categories().then(async () => {
-        const summary = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api/reports/summary${buildQs(filters)}`
-        ).then((r) => r.json());
-        return summary.categories;
-      }),
-    ])
-      .then(([ov, act, pipe, empPerf, catPerf]) => {
-        setOverview(ov);
-        setActivity(act.series || []);
-        setPipeline(pipe);
-        setEmployees(empPerf || []);
-        setCategoriesPerf(catPerf || []);
+    api.overview(filters).then(setOverview).catch((e) => setError(e.message));
+    api.activity(filters).then((act) => setActivity(act.series || [])).catch(() => setActivity([]));
+    api.pipeline(filters).then(setPipeline).catch(() => setPipeline(null));
+    api
+      .summary(filters)
+      .then((summary) => {
+        setEmployees(summary.employees || []);
+        setCategoriesPerf(summary.categories || []);
       })
-      .catch((e) => setError(e.message));
+      .catch(() => {
+        setEmployees([]);
+        setCategoriesPerf([]);
+      });
   }, [filters]);
 
   async function handleSync() {
@@ -62,10 +55,11 @@ export default function DashboardPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        eyebrow="Operations Overview"
-        title="Lead Activity Dashboard"
+        eyebrow="01 / Operations"
+        title="Lead activity"
+        accent="dashboard."
         description={
           <>
             Last sync: {overview?.sync?.last_sync_at ? new Date(overview.sync.last_sync_at).toLocaleString() : "Never"}
@@ -76,17 +70,18 @@ export default function DashboardPage() {
           </>
         }
         action={
-          <button onClick={handleSync} disabled={syncing} className="btn-primary">
-            {syncing ? "Syncing..." : "Sync Now"}
+          <button onClick={handleSync} disabled={syncing} className="btn-primary sheen">
+            {syncing ? "Syncing..." : "Sync now"}
+            <ArrowUpRight size={14} />
           </button>
         }
       />
 
       <FilterBar filters={filters} onChange={setFilters} categories={categories} />
 
-      {error ? <div className="card p-4 text-[var(--warning)]">Failed to load dashboard: {error}</div> : null}
+      {error ? <div className="card p-5 text-destructive">Failed to load dashboard: {error}</div> : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Total Leads" value={overview?.total_leads ?? "—"} />
         <KpiCard label="Leads Contacted" value={overview?.leads_contacted ?? "—"} />
         <KpiCard label="Initial Emails" value={overview?.initial_emails ?? "—"} />
@@ -99,6 +94,8 @@ export default function DashboardPage() {
         <KpiCard label="Awaiting Reply" value={overview?.awaiting_reply ?? "—"} />
         <KpiCard label="Potential Duplicates" value={overview?.potential_duplicates ?? "—"} />
       </section>
+
+      <div className="section-rule" />
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ActivityTrendChart data={activity} />
@@ -113,13 +110,4 @@ export default function DashboardPage() {
       <CategoryCompareChart data={categoriesPerf} />
     </div>
   );
-}
-
-function buildQs(filters: Filters) {
-  const q = new URLSearchParams();
-  if (filters.period) q.set("period", filters.period);
-  if (filters.employee && filters.employee !== "all") q.set("employee", filters.employee);
-  if (filters.category && filters.category !== "all") q.set("category", filters.category);
-  const s = q.toString();
-  return s ? `?${s}` : "";
 }

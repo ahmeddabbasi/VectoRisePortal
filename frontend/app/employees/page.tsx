@@ -1,29 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EmployeeCompareChart } from "@/components/Charts";
+import { EmployeeCompareChart } from "@/components/charts-dynamic";
+import { useCategories } from "@/components/CategoriesProvider";
 import { FilterBar } from "@/components/FilterBar";
 import { PageHeader } from "@/components/PageHeader";
 import { api, DEFAULT_PERIOD, Filters } from "@/lib/api";
 
-export default function EmployeesPage() {
-  const [filters, setFilters] = useState<Filters>({ period: DEFAULT_PERIOD, category: "all" });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [rows, setRows] = useState<any[]>([]);
-  const [targets, setTargets] = useState<any[]>([]);
+const DEFAULT_FILTERS: Filters = { period: DEFAULT_PERIOD, category: "all" };
 
-  useEffect(() => {
-    api.categories().then((r) => setCategories(r.categories));
-    api.targets().then(setTargets).catch(() => setTargets([]));
-  }, []);
+export default function EmployeesPage() {
+  const categories = useCategories();
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [rows, setRows] = useState<any[]>(() => api.getCached<any>(api.paths.summary(DEFAULT_FILTERS))?.employees ?? []);
+  const [targets, setTargets] = useState<any[]>(() => api.getCached(api.paths.targets()) ?? []);
 
   useEffect(() => {
     api.employeePerformance(filters.period).then(setRows).catch(() => setRows([]));
   }, [filters]);
 
+  useEffect(() => {
+    api.targets().then(setTargets).catch(() => setTargets([]));
+  }, []);
+
   return (
-    <div className="space-y-6">
-      <PageHeader title="Employee Performance" description="Volume and outcomes by employee." />
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="03 / Team"
+        title="Employee"
+        accent="performance."
+        description="Volume and outcomes by employee."
+      />
       <FilterBar filters={filters} onChange={setFilters} categories={categories} />
       <EmployeeCompareChart data={rows} />
       <div className="card overflow-x-auto">
@@ -60,8 +67,8 @@ export default function EmployeesPage() {
                 <span>{t.employee} · {t.activity_type.replaceAll("_", " ")}</span>
                 <span>{t.actual}/{t.target} ({t.percentage}%)</span>
               </div>
-              <div className="h-1.5 rounded-full bg-[rgba(28,138,242,0.12)]">
-                <div className="h-1.5 rounded-full bg-[var(--blue)]" style={{ width: `${Math.min(t.percentage, 100)}%` }} />
+              <div className="h-1.5 rounded-full bg-lavender/15">
+                <div className="h-1.5 rounded-full bg-lavender" style={{ width: `${Math.min(t.percentage, 100)}%` }} />
               </div>
             </div>
           ))}

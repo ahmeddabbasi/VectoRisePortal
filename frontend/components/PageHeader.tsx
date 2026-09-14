@@ -1,19 +1,28 @@
 type Props = {
   eyebrow?: string;
   title: string;
+  accent?: string;
   description?: React.ReactNode;
   action?: React.ReactNode;
 };
 
-export function PageHeader({ eyebrow, title, description, action }: Props) {
+export function PageHeader({ eyebrow, title, accent, description, action }: Props) {
   return (
-    <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--border)] pb-5">
+    <header className="flex flex-wrap items-end justify-between gap-4 pb-2">
       <div>
-        {eyebrow ? <p className="section-label">{eyebrow}</p> : null}
-        <h1 className="page-title">{title}</h1>
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+        <h1 className="page-title">
+          {title}
+          {accent ? (
+            <>
+              {" "}
+              <span className="font-display italic text-lavender">{accent}</span>
+            </>
+          ) : null}
+        </h1>
         {description ? <p className="page-description">{description}</p> : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? <div className="shrink-0 pb-1">{action}</div> : null}
     </header>
   );
 }

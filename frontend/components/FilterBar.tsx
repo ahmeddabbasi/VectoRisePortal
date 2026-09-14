@@ -23,7 +23,7 @@ type Props = {
 
 export function FilterBar({ filters, onChange, categories = [], showSearch }: Props) {
   return (
-    <div className="card flex flex-wrap items-end gap-3 p-4">
+    <div className="card flex flex-wrap items-end gap-4 p-5">
       <Field label="Period">
         <select
           className="input"
@@ -72,8 +72,11 @@ export function FilterBar({ filters, onChange, categories = [], showSearch }: Pr
           />
         </Field>
       )}
-      <button className="btn-secondary" onClick={() => onChange({ period: DEFAULT_PERIOD, employee: "all", category: "all", search: "" })}>
-        Reset Filters
+      <button
+        className="btn-secondary"
+        onClick={() => onChange({ period: DEFAULT_PERIOD, employee: "all", category: "all", search: "" })}
+      >
+        Reset
       </button>
     </div>
   );
@@ -81,7 +84,7 @@ export function FilterBar({ filters, onChange, categories = [], showSearch }: Pr
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-[var(--muted)]">
+    <label className="flex min-w-[160px] flex-1 flex-col gap-2 font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">
       {label}
       {children}
     </label>
