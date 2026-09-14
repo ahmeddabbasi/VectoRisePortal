@@ -1,0 +1,12 @@
+credentials/*.json
+!credentials/.gitkeep
+# Dependencies
+node_modules/
+frontend/.next/
+frontend/out/
+backend/data/
+backend/.venv/
+.env
+.env.local
+__pycache__/
+token.json
