@@ -236,7 +236,15 @@ export const api = {
   },
   paths,
   login: (email: string, password: string) =>
-    fetchJson<{ access_token: string; role: string; employee_id: number | null; name: string | null; email: string }>(
+    fetchJson<{
+      access_token: string;
+      role: string;
+      employee_id: number | null;
+      name: string | null;
+      email: string;
+      sales_access?: boolean;
+      can_review_tasks?: boolean;
+    }>(
       "/api/auth/login",
       { method: "POST", body: JSON.stringify({ email, password }) },
       false
@@ -250,7 +258,17 @@ export const api = {
     if (auth && result.access_token) storeAuth({ ...auth, token: result.access_token });
     return result;
   },
-  me: () => fetchJson<{ id: number; email: string; role: string; employee_id: number | null; name: string | null; is_active: boolean }>("/api/auth/me"),
+  me: () =>
+    fetchJson<{
+      id: number;
+      email: string;
+      role: string;
+      employee_id: number | null;
+      name: string | null;
+      is_active: boolean;
+      sales_access?: boolean;
+      can_review_tasks?: boolean;
+    }>("/api/auth/me"),
 
   adminDashboard: () => fetchJson<any>("/api/admin/dashboard"),
   adminEmployees: () => fetchJson<any[]>("/api/admin/employees"),
