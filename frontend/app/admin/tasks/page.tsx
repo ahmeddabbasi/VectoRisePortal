@@ -149,6 +149,7 @@ export default function AdminTasksPage() {
       </DataTable>
       <section className="card space-y-4 p-6">
         <h2 className="font-display text-lg">Documents submitted for review</h2>
+        <p className="text-sm text-muted-foreground">Download saves the file to this device. Each file is removed from the database 4 days after it is uploaded.</p>
         <DocumentList rows={documents} />
       </section>
     </div>

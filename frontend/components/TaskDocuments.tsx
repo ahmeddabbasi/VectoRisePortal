@@ -41,16 +41,17 @@ export function TaskDocuments({ taskId }: { taskId: number }) {
           }}
         />
       </label>
-      <p className="text-xs text-muted-foreground">PDF, Word, text, or an image. Reviewers and admins can open these files.</p>
+      <p className="text-xs text-muted-foreground">PDF, Word, text, or an image. An admin is notified and can download it for 4 days. It is then removed.</p>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {docs.map((doc) => (
         <button
           key={doc.id}
           type="button"
-          className="block text-sm text-brand"
-          onClick={() => downloadAuthedFile(doc.download_path, doc.original_name).catch(() => setError("Could not open that file"))}
+          className="block text-left text-sm text-brand"
+          onClick={() => downloadAuthedFile(doc.download_path, doc.original_name).catch(() => setError("Could not download that file"))}
         >
           {doc.original_name}
+          {doc.expires_at ? <span className="mt-1 block text-xs text-muted-foreground">Available until {new Date(doc.expires_at).toLocaleString()}</span> : null}
         </button>
       ))}
     </div>
@@ -68,13 +69,14 @@ export function DocumentList({ rows }: { rows: any[] }) {
           key={doc.id}
           type="button"
           className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#0f1c2e]/10 px-4 py-3 text-left text-sm"
-          onClick={() => downloadAuthedFile(doc.download_path, doc.original_name).catch(() => setError("Could not open that file"))}
+          onClick={() => downloadAuthedFile(doc.download_path, doc.original_name).catch(() => setError("Could not download that file"))}
         >
           <span>
             <span className="block font-medium">{doc.original_name}</span>
             <span className="text-muted-foreground">{doc.employee_name} · {doc.task_title}</span>
+            {doc.expires_at ? <span className="block text-xs text-muted-foreground">Deleted from the database on {new Date(doc.expires_at).toLocaleString()}</span> : null}
           </span>
-          <span className="text-brand">Open</span>
+          <span className="text-brand">Download</span>
         </button>
       ))}
     </div>
