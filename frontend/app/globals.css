@@ -55,6 +55,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 ::selection {
   background: hsl(var(--secondary));
   color: hsl(var(--foreground));
@@ -343,6 +352,86 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: hsl(var(--muted-foreground));
+}
+
+.table-card {
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--card-border));
+  background: hsl(var(--card));
+  box-shadow: 0 8px 30px rgba(15, 28, 46, 0.06);
+  overflow: hidden;
+}
+
+.table-card-hint {
+  display: block;
+  border-bottom: 1px solid hsl(var(--card-border));
+  background: hsl(var(--muted) / 0.35);
+  padding: 0.5rem 1rem;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (min-width: 1024px) {
+  .table-card-hint {
+    display: none;
+  }
+}
+
+.table-card-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.table-card-table {
+  width: 100%;
+  min-width: 36rem;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .table-card-table {
+    min-width: 100%;
+  }
+}
+
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+.safe-bottom {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(10, 14, 26, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.tap-target {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+}
+
+@media (max-width: 639px) {
+  .page-title {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+  }
+
+  .page-description {
+    font-size: 0.875rem;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -5,6 +5,8 @@ node_modules/
 frontend/.next/
 frontend/out/
 backend/data/
+backend/uploads/*
+!backend/uploads/.gitkeep
 backend/.venv/
 .env
 .env.local

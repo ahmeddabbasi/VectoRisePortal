@@ -196,6 +196,20 @@ export function EmployeeCompareChart({ data }: { data: any[] }) {
   );
 }
 
+export function HrmAttendanceBarChart({ data }: { data: { date: string; present: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
+        <XAxis dataKey="date" tick={{ fill: CHART.axis, fontSize: 11 }} />
+        <YAxis allowDecimals={false} tick={{ fill: CHART.axis, fontSize: 11 }} />
+        <Tooltip contentStyle={chartTooltipStyle} />
+        <Bar dataKey="present" name="Present" fill={CHART.primary} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function CategoryCompareChart({ data }: { data: any[] }) {
   return (
     <div className="card h-80 p-5">

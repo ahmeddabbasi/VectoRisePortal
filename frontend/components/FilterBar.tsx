@@ -1,6 +1,7 @@
 "use client";
 
-import { DEFAULT_PERIOD, Filters } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { api, DEFAULT_PERIOD, Filters } from "@/lib/api";
 
 const PERIODS = [
   { value: "today", label: "Today" },
@@ -22,8 +23,12 @@ type Props = {
 };
 
 export function FilterBar({ filters, onChange, categories = [], showSearch }: Props) {
+  const [employees, setEmployees] = useState<string[]>([]);
+  useEffect(() => {
+    api.employees().then((rows) => setEmployees(rows.map((row) => row.name).filter(Boolean))).catch(() => setEmployees([]));
+  }, []);
   return (
-    <div className="card flex flex-wrap items-end gap-4 p-5">
+    <div className="card flex flex-wrap items-end gap-3 p-4 sm:gap-4 sm:p-5">
       <Field label="Period">
         <select
           className="input"
@@ -44,8 +49,9 @@ export function FilterBar({ filters, onChange, categories = [], showSearch }: Pr
           onChange={(e) => onChange({ ...filters, employee: e.target.value })}
         >
           <option value="all">All Employees</option>
-          <option value="Dawood">Dawood</option>
-          <option value="Hanya">Hanya</option>
+          {employees.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
         </select>
       </Field>
       <Field label="Category">
@@ -65,7 +71,7 @@ export function FilterBar({ filters, onChange, categories = [], showSearch }: Pr
       {showSearch && (
         <Field label="Search">
           <input
-            className="input min-w-[220px]"
+            className="input min-w-0 w-full sm:min-w-[220px]"
             placeholder="Company, contact, email..."
             value={filters.search || ""}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
@@ -84,7 +90,7 @@ export function FilterBar({ filters, onChange, categories = [], showSearch }: Pr
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex min-w-[160px] flex-1 flex-col gap-2 font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">
+    <label className="flex w-full min-w-0 flex-1 flex-col gap-2 font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground sm:min-w-[10rem]">
       {label}
       {children}
     </label>

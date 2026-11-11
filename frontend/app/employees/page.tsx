@@ -16,8 +16,8 @@ export default function EmployeesPage() {
   const [targets, setTargets] = useState<any[]>(() => api.getCached(api.paths.targets()) ?? []);
 
   useEffect(() => {
-    api.employeePerformance(filters.period).then(setRows).catch(() => setRows([]));
-  }, [filters]);
+    api.summary(filters).then((data) => setRows(data?.employees ?? [])).catch(() => setRows([]));
+  }, [filters.period, filters.category, filters.employee]);
 
   useEffect(() => {
     api.targets().then(setTargets).catch(() => setTargets([]));

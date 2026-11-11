@@ -118,6 +118,7 @@ class MetricsService:
             "total_leads": total_leads,
             "leads_contacted": contacted,
             "initial_emails": initial_emails,
+            "emails_sent": initial_emails,
             "follow_ups": follow_ups,
             "linkedin_outreach": linkedin,
             "replies": replies,

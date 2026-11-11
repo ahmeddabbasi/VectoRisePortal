@@ -15,8 +15,7 @@ export function NavigationProgress() {
     }
 
     setActive(true);
-    window.scrollTo(0, 0);
-    const timer = window.setTimeout(() => setActive(false), 320);
+    const timer = window.setTimeout(() => setActive(false), 200);
     return () => window.clearTimeout(timer);
   }, [pathname]);
 

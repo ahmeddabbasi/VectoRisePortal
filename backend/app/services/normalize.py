@@ -156,7 +156,7 @@ def row_to_lead_record(
     employee_id: int,
     spreadsheet_id: str,
 ) -> dict[str, Any] | None:
-    first = get_cell(row, "First Name")
+    first = get_cell(row, "First Name", "Name", "Contact Name")
     if not first:
         return None
 
@@ -165,7 +165,7 @@ def row_to_lead_record(
     email = get_cell(row, "Email", "Emails")
     linkedin = get_cell(row, "Person Linkedin Url", "LinkedIn")
     contact_name = " ".join(x for x in [first, last] if x).strip()
-    external_id = get_cell(row, "Lead ID") or f"{source['category'][:3].upper()}-{row_number:04d}"
+    external_id = get_cell(row, "Lead ID") or f"{source['sheet_gid']}-{row_number:04d}"
 
     if source["data_type"] == "linkedin":
         outreach_date = parse_date(get_cell(row, "Date"))

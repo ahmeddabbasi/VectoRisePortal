@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { getToken } from "@/lib/auth";
 import { api } from "@/lib/api";
 
 const CategoriesContext = createContext<string[]>([]);
@@ -15,6 +16,7 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
   );
 
   useEffect(() => {
+    if (!getToken()) return;
     api.categories().then((r) => setCategories(r.categories)).catch(() => {});
   }, []);
 

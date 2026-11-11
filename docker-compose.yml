@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vectorise}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-vectorise}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vectorise}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vectorise}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-vectorise}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      SEED_DATABASE: ${SEED_DATABASE:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@yourcompany.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      GOOGLE_SPREADSHEET_ID: ${GOOGLE_SPREADSHEET_ID:-}
+      GOOGLE_SERVICE_ACCOUNT_PATH: /app/credentials/google-service-account.json
+      ENABLE_SYNC_SCHEDULER: ${ENABLE_SYNC_SCHEDULER:-true}
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-15}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+      - ./credentials:/app/credentials:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads:

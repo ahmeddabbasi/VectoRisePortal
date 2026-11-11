@@ -1,23 +1,42 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { api } from "@/lib/api";
 
 export default function LeadDetailPage() {
   const params = useParams<{ id: string }>();
+  const pathname = usePathname();
+  const leadsListPath = pathname.startsWith("/employee/") ? "/employee/sales/leads" : "/admin/sales/leads";
   const [lead, setLead] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!params?.id) return;
-    api.lead(Number(params.id)).then(setLead).catch(() => setLead(null));
+    api.lead(Number(params.id))
+      .then(setLead)
+      .catch((e) => {
+        setLead(null);
+        setError(e.message || "Failed to load lead");
+      });
   }, [params?.id]);
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <Link href={leadsListPath} className="text-sm text-[#1c7fd4] hover:underline">← Back to leads</Link>
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
 
   if (!lead) return <div className="card p-6 text-muted-foreground">Loading lead...</div>;
 
   return (
     <div className="space-y-8">
+      <Link href={leadsListPath} className="inline-block text-sm text-[#1c7fd4] hover:underline">← Back to leads</Link>
       <PageHeader
         eyebrow={lead.external_id}
         title={lead.company_name || lead.contact_name}
@@ -62,7 +81,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="flex min-h-11 justify-between gap-4 border-b border-ink/10 py-2">
       <span className="font-mono-custom text-[9px] uppercase tracking-widest text-muted-foreground">{label}</span>
-      <span className="text-right">{value || "—"}</span>
+      <span className="text-right break-all">{value || "—"}</span>
     </div>
   );
 }

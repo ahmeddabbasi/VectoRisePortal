@@ -30,3 +30,8 @@ export const CategoryCompareChart = dynamic(
   () => import("@/components/Charts").then((m) => m.CategoryCompareChart),
   { ssr: false, loading: () => <ChartPlaceholder /> }
 );
+
+export const HrmAttendanceBarChart = dynamic(
+  () => import("@/components/Charts").then((m) => m.HrmAttendanceBarChart),
+  { ssr: false, loading: () => <ChartPlaceholder className="h-64" /> }
+);

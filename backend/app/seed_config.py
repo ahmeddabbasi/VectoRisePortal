@@ -1,3 +1,5 @@
+DEFAULT_SPREADSHEET_ID = "1WyXufFOy6Q37oEoyf6a5C7Yk46SzYGjDqXOhj9OKzVI"
+
 DEFAULT_SOURCES = [
     {
         "name": "Automation Leads",
