@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/InlineSkeleton";
@@ -28,6 +28,9 @@ export default function AdminEmployeesPage() {
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const createFormRef = useRef<HTMLFormElement>(null);
   useBodyScrollLock(Boolean(deleteTarget));
 
   async function load() {
@@ -35,9 +38,10 @@ export default function AdminEmployeesPage() {
     setData({ employees: emps, departments: depts });
   }
 
-  async function createEmployee(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const submitted = new FormData(e.currentTarget);
+  async function createEmployee() {
+    const formEl = createFormRef.current;
+    if (!formEl || !formEl.reportValidity()) return;
+    const submitted = new FormData(formEl);
     const password = String(submitted.get("password") ?? "");
     const confirmPassword = String(submitted.get("confirmPassword") ?? "");
     setMessage(null);
@@ -47,24 +51,32 @@ export default function AdminEmployeesPage() {
       setMessage("Passwords do not match. Type the same password in both fields.");
       return;
     }
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const payload = {
+      name: String(submitted.get("name") ?? ""),
+      email: String(submitted.get("email") ?? ""),
+      password,
+      job_title: String(submitted.get("job_title") ?? ""),
+      department_id: Number(submitted.get("department_id")) || null,
+      sales_access: submitted.get("sales_access") === "on",
+      can_review_tasks: submitted.get("can_review_tasks") === "on",
+      role: "employee",
+    };
+    setSaving(true);
     try {
-      await api.createEmployee({
-        name: String(submitted.get("name") ?? ""),
-        email: String(submitted.get("email") ?? ""),
-        password,
-        job_title: String(submitted.get("job_title") ?? ""),
-        department_id: Number(submitted.get("department_id")) || null,
-        sales_access: submitted.get("sales_access") === "on",
-        can_review_tasks: submitted.get("can_review_tasks") === "on",
-        role: "employee",
-      });
+      await api.createEmployee(payload);
       await load();
       setForm({ name: "", email: "", password: "", confirmPassword: "", job_title: "", department_id: 0, sales_access: false, can_review_tasks: false });
       setShowPassword(false);
       setMessage("Employee created.");
     } catch (err: any) {
+      const raw = String(err?.message || "");
       setMessageError(true);
-      setMessage(err.message);
+      setMessage(raw === "Load failed" || raw === "Failed to fetch" ? "Could not reach the server. Wait a moment and try again." : raw);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   }
 
@@ -115,7 +127,14 @@ export default function AdminEmployeesPage() {
     <div className="space-y-8">
       <PageHeader eyebrow="Admin" title="Employee Management" description="Add, edit, and manage workforce members." />
       {message ? <p className={messageError ? "text-sm text-red-600" : "text-sm text-brand"}>{message}</p> : null}
-      <form onSubmit={createEmployee} className="card grid gap-4 p-6 md:grid-cols-2">
+      <form
+        ref={createFormRef}
+        onSubmit={(event) => {
+          event.preventDefault();
+          window.setTimeout(() => { void createEmployee(); }, 0);
+        }}
+        className="card grid gap-4 p-6 md:grid-cols-2"
+      >
         <input className="input" placeholder="Full name" name="name" value={form.name} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, name: value })); }} required />
         <input className="input" placeholder="Email" type="email" name="email" value={form.email} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, email: value })); }} required />
         <input className="input" placeholder="Job title" name="job_title" value={form.job_title} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, job_title: value })); }} />
@@ -172,7 +191,7 @@ export default function AdminEmployeesPage() {
         />
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="sales_access" checked={form.sales_access} onChange={(e) => { const checked = e.target.checked; setForm((current) => ({ ...current, sales_access: checked })); }} /> Can view sales data and leads</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="can_review_tasks" checked={form.can_review_tasks} onChange={(e) => { const checked = e.target.checked; setForm((current) => ({ ...current, can_review_tasks: checked })); }} /> Can review task documents</label>
-        <button type="submit" className="btn-primary md:col-span-2">Add Employee</button>
+        <button type="submit" className="btn-primary md:col-span-2" disabled={saving}>{saving ? "Adding..." : "Add Employee"}</button>
       </form>
       {!data && loading ? <TableSkeleton rows={8} /> : <DataTable minWidth="40rem">
           <thead className="table-head">

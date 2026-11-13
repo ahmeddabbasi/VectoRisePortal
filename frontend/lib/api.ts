@@ -191,9 +191,9 @@ async function fetchJson<T>(
   return request as Promise<T>;
 }
 
-function post<T>(path: string, body?: unknown) {
+function post<T>(path: string, body?: unknown, timeoutMs?: number) {
   invalidateCache(path);
-  return fetchJson<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined });
+  return fetchJson<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }, true, { timeoutMs });
 }
 
 function put<T>(path: string, body: unknown) {
@@ -272,7 +272,7 @@ export const api = {
 
   adminDashboard: () => fetchJson<any>("/api/admin/dashboard"),
   adminEmployees: () => fetchJson<any[]>("/api/admin/employees"),
-  createEmployee: (data: Record<string, unknown>) => post<any>("/api/admin/employees", data),
+  createEmployee: (data: Record<string, unknown>) => post<any>("/api/admin/employees", data, 60_000),
   updateEmployee: (id: number, data: Record<string, unknown>) => put<any>(`/api/admin/employees/${id}`, data),
   deleteEmployee: (id: number) => {
     invalidateCache("/api/admin/employees");
