@@ -35,24 +35,27 @@ export default function AdminEmployeesPage() {
     setData({ employees: emps, departments: depts });
   }
 
-  async function createEmployee(e: React.FormEvent) {
+  async function createEmployee(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const submitted = new FormData(e.currentTarget);
+    const password = String(submitted.get("password") ?? "");
+    const confirmPassword = String(submitted.get("confirmPassword") ?? "");
     setMessage(null);
     setMessageError(false);
-    if (form.password !== form.confirmPassword) {
+    if (password !== confirmPassword) {
       setMessageError(true);
       setMessage("Passwords do not match. Type the same password in both fields.");
       return;
     }
     try {
       await api.createEmployee({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        job_title: form.job_title,
-        department_id: form.department_id || null,
-        sales_access: form.sales_access,
-        can_review_tasks: form.can_review_tasks,
+        name: String(submitted.get("name") ?? ""),
+        email: String(submitted.get("email") ?? ""),
+        password,
+        job_title: String(submitted.get("job_title") ?? ""),
+        department_id: Number(submitted.get("department_id")) || null,
+        sales_access: submitted.get("sales_access") === "on",
+        can_review_tasks: submitted.get("can_review_tasks") === "on",
         role: "employee",
       });
       await load();
@@ -113,13 +116,14 @@ export default function AdminEmployeesPage() {
       <PageHeader eyebrow="Admin" title="Employee Management" description="Add, edit, and manage workforce members." />
       {message ? <p className={messageError ? "text-sm text-red-600" : "text-sm text-brand"}>{message}</p> : null}
       <form onSubmit={createEmployee} className="card grid gap-4 p-6 md:grid-cols-2">
-        <input className="input" placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input className="input" placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <input className="input" placeholder="Job title" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
-        <select className="input" value={form.department_id} onChange={(e) => {
+        <input className="input" placeholder="Full name" name="name" value={form.name} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, name: value })); }} required />
+        <input className="input" placeholder="Email" type="email" name="email" value={form.email} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, email: value })); }} required />
+        <input className="input" placeholder="Job title" name="job_title" value={form.job_title} onChange={(e) => { const value = e.target.value; setForm((current) => ({ ...current, job_title: value })); }} />
+        <select className="input" name="department_id" value={form.department_id} onChange={(e) => {
           const departmentId = Number(e.target.value);
           const department = departments.find((item) => item.id === departmentId);
-          setForm({ ...form, department_id: departmentId, sales_access: /sales/i.test(department?.name || "") });
+          const salesAccess = /sales/i.test(department?.name || "");
+          setForm((current) => ({ ...current, department_id: departmentId, sales_access: salesAccess }));
         }}>
           <option value={0}>No department</option>
           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -133,8 +137,12 @@ export default function AdminEmployeesPage() {
             autoComplete="new-password"
             autoCapitalize="off"
             spellCheck={false}
+            name="password"
             value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              setForm((current) => ({ ...current, password: value }));
+            }}
             required
           />
           <button
@@ -151,15 +159,19 @@ export default function AdminEmployeesPage() {
           placeholder="Repeat password"
           type={showPassword ? "text" : "password"}
           minLength={8}
-          autoComplete="new-password"
+          name="confirmPassword"
+          autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
           value={form.confirmPassword}
-          onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value;
+            setForm((current) => ({ ...current, confirmPassword: value }));
+          }}
           required
         />
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.sales_access} onChange={(e) => setForm({ ...form, sales_access: e.target.checked })} /> Can view sales data and leads</label>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.can_review_tasks} onChange={(e) => setForm({ ...form, can_review_tasks: e.target.checked })} /> Can review task documents</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="sales_access" checked={form.sales_access} onChange={(e) => { const checked = e.target.checked; setForm((current) => ({ ...current, sales_access: checked })); }} /> Can view sales data and leads</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="can_review_tasks" checked={form.can_review_tasks} onChange={(e) => { const checked = e.target.checked; setForm((current) => ({ ...current, can_review_tasks: checked })); }} /> Can review task documents</label>
         <button type="submit" className="btn-primary md:col-span-2">Add Employee</button>
       </form>
       {!data && loading ? <TableSkeleton rows={8} /> : <DataTable minWidth="40rem">
