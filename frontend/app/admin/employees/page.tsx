@@ -21,7 +21,8 @@ export default function AdminEmployeesPage() {
   const employees = data?.employees ?? [];
   const departments = data?.departments ?? [];
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", job_title: "", department_id: 0, sales_access: false, can_review_tasks: false });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", job_title: "", department_id: 0, sales_access: false, can_review_tasks: false });
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageError, setMessageError] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
@@ -38,10 +39,25 @@ export default function AdminEmployeesPage() {
     e.preventDefault();
     setMessage(null);
     setMessageError(false);
+    if (form.password !== form.confirmPassword) {
+      setMessageError(true);
+      setMessage("Passwords do not match. Type the same password in both fields.");
+      return;
+    }
     try {
-      await api.createEmployee({ ...form, role: "employee", department_id: form.department_id || null });
+      await api.createEmployee({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        job_title: form.job_title,
+        department_id: form.department_id || null,
+        sales_access: form.sales_access,
+        can_review_tasks: form.can_review_tasks,
+        role: "employee",
+      });
       await load();
-      setForm({ name: "", email: "", password: "", job_title: "", department_id: 0, sales_access: false, can_review_tasks: false });
+      setForm({ name: "", email: "", password: "", confirmPassword: "", job_title: "", department_id: 0, sales_access: false, can_review_tasks: false });
+      setShowPassword(false);
       setMessage("Employee created.");
     } catch (err: any) {
       setMessageError(true);
@@ -108,7 +124,40 @@ export default function AdminEmployeesPage() {
           <option value={0}>No department</option>
           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
-        <input className="input" placeholder="Password (8+ chars, letter and number)" type="password" minLength={8} autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+        <div className="relative">
+          <input
+            className="input pr-16"
+            placeholder="Password (8+ chars, letter and number)"
+            type={showPassword ? "text" : "password"}
+            minLength={8}
+            autoComplete="new-password"
+            autoCapitalize="off"
+            spellCheck={false}
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+          <button
+            type="button"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-brand"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+        <input
+          className="input"
+          placeholder="Repeat password"
+          type={showPassword ? "text" : "password"}
+          minLength={8}
+          autoComplete="new-password"
+          autoCapitalize="off"
+          spellCheck={false}
+          value={form.confirmPassword}
+          onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+          required
+        />
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.sales_access} onChange={(e) => setForm({ ...form, sales_access: e.target.checked })} /> Can view sales data and leads</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.can_review_tasks} onChange={(e) => setForm({ ...form, can_review_tasks: e.target.checked })} /> Can review task documents</label>
         <button type="submit" className="btn-primary md:col-span-2">Add Employee</button>
