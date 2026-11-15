@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { TeamHierarchy } from "@/components/TeamHierarchy";
 import { api, fetchAuthedMedia } from "@/lib/api";
 
 export default function EmployeeProfilePage() {
@@ -12,12 +13,14 @@ export default function EmployeeProfilePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+  const [team, setTeam] = useState<any>(null);
 
   useEffect(() => {
     api.employeeProfile().then((p) => {
       setProfile(p);
       setPhone(p.phone || "");
     });
+    api.teamSummary().then(setTeam).catch(() => setTeam(null));
   }, []);
 
   async function saveProfile() {
@@ -113,6 +116,7 @@ export default function EmployeeProfilePage() {
         </div>
         <button type="button" className="btn-primary md:col-span-2" onClick={saveProfile}>Save Profile</button>
       </div>
+      <TeamHierarchy summary={team} />
       <div className="card space-y-4 p-6">
         <h2 className="font-display text-lg">Change Password</h2>
         <input className="input w-full" type="password" autoComplete="current-password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />

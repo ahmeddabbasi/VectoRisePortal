@@ -28,6 +28,12 @@ export async function fetchAuthedMedia(path: string | null | undefined): Promise
   return URL.createObjectURL(await res.blob());
 }
 
+export async function fetchAuthedBlob(path: string): Promise<Blob> {
+  const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Could not open that file");
+  return res.blob();
+}
+
 export async function downloadAuthedFile(path: string, filename: string) {
   if (!path.startsWith("/api/media/tasks/")) return;
   const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
@@ -65,7 +71,7 @@ const inflight = new Map<string, Promise<unknown>>();
 
 const STATIC_PATHS = ["/api/admin/departments", "/api/categories"];
 const DASHBOARD_PATHS = ["/api/admin/dashboard", "/api/employee/dashboard"];
-const LIVE_PATHS = ["/api/leads", "/api/sync"];
+const LIVE_PATHS = ["/api/leads", "/api/sync", "/api/team"];
 
 function cacheTtl(path: string): number {
   if (LIVE_PATHS.some((p) => path.startsWith(p))) return 5_000;
@@ -81,6 +87,7 @@ type FetchOptions = {
 
 const INVALIDATION_MAP: Record<string, string[]> = {
   "/api/admin/employees": ["/api/admin/employees", "/api/admin/dashboard", "/api/hrm"],
+  "/api/admin/team-assignments": ["/api/admin/team-assignments", "/api/team"],
   "/api/admin/departments": ["/api/admin/departments", "/api/admin/employees"],
   "/api/admin/settings": ["/api/admin/settings"],
   "/api/admin/evaluations": ["/api/admin/evaluations", "/api/admin/performance"],
@@ -382,6 +389,23 @@ export const api = {
   notifications: () => fetchJson<any[]>("/api/notifications?days=3"),
   notificationUnreadCount: () => fetchJson<{ count: number }>("/api/notifications/unread-count?days=3"),
   markNotificationRead: (id: number) => post<any>(`/api/notifications/${id}/read`),
+  markAllNotificationsRead: () => post<{ updated: number }>("/api/notifications/read-all", {}),
+  markAllChatRead: () => post<{ updated: number }>("/api/chat/read-all", {}),
+  teamSummary: () => fetchJson<any>("/api/team/me", {}, true, { fresh: true }),
+  teamPerson: (employeeId: number) => fetchJson<any>(`/api/team/people/${employeeId}`, {}, true, { fresh: true }),
+  teamTasks: (employeeId: number) => fetchJson<any[]>(`/api/team/reports/${employeeId}/tasks`, {}, true, { fresh: true }),
+  assignTeamTask: (employeeId: number, data: Record<string, unknown>) =>
+    post<any>(`/api/team/reports/${employeeId}/tasks`, { ...data, assigned_employee_id: employeeId }),
+  reviewTeamTask: (taskId: number, data: Record<string, unknown>) => post<any>(`/api/team/tasks/${taskId}/reviews`, data),
+  reviewTeamMember: (employeeId: number, data: Record<string, unknown>) =>
+    post<any>(`/api/team/reports/${employeeId}/evaluations`, data),
+  teamAssignments: () => fetchJson<any[]>("/api/admin/team-assignments", {}, true, { fresh: true }),
+  createTeamAssignment: (data: { team_lead_id: number; employee_id: number }) => post<any>("/api/admin/team-assignments", data),
+  removeTeamAssignment: (teamLeadId: number, employeeId: number) =>
+    fetchJson<{ status: string }>(
+      `/api/admin/team-assignments?team_lead_id=${teamLeadId}&employee_id=${employeeId}`,
+      { method: "DELETE" },
+    ),
   employeeNotifications: () => fetchJson<any[]>("/api/notifications?days=3"),
   employeePerformance: () => fetchJson<any>("/api/employee/performance"),
 

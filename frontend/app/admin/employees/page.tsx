@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import { PageHeader } from "@/components/PageHeader";
+import { TeamAssignmentEditor } from "@/components/TeamAssignmentEditor";
 import { TableSkeleton } from "@/components/InlineSkeleton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { api } from "@/lib/api";
@@ -239,6 +240,7 @@ export default function AdminEmployeesPage() {
           </select>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(editing.sales_access)} onChange={(e) => setEditing({ ...editing, sales_access: e.target.checked })} /> Can view sales data and leads</label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(editing.can_review_tasks)} onChange={(e) => setEditing({ ...editing, can_review_tasks: e.target.checked })} /> Can review task documents</label>
+          <TeamAssignmentEditor employee={editing} employees={employees} />
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-primary" onClick={saveEdit}>Save</button>
             <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>

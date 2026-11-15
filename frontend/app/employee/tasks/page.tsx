@@ -283,7 +283,9 @@ export default function EmployeeTasksPage() {
 
         {active.map((task) => (
 
-          <div key={task.id} className="card p-6">
+          <div key={task.id} className="card grid gap-6 p-6 lg:grid-cols-2">
+
+            <div className="min-w-0 space-y-4">
 
             <div className="flex flex-wrap items-start justify-between gap-3">
 
@@ -365,7 +367,9 @@ export default function EmployeeTasksPage() {
 
             ) : null}
 
-            <TaskDocuments taskId={task.id} />
+            </div>
+
+            <TaskDocuments taskId={task.id} canUpload />
 
           </div>
 

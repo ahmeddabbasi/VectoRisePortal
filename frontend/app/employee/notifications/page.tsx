@@ -2,18 +2,35 @@
 
 import { NotificationsList } from "@/components/notifications-dynamic";
 import { PageHeader } from "@/components/PageHeader";
+import { usePortalStatus } from "@/contexts/PortalStatusContext";
 import { api } from "@/lib/api";
 import { useCachedQuery } from "@/lib/useApiQuery";
 
 export default function EmployeeNotificationsPage() {
-  const { data: items, loading, setData } = useCachedQuery(
+  const { data: items, setData } = useCachedQuery(
     "/api/notifications?days=3",
     () => api.notifications(),
   );
+  const { setNotificationUnread, refresh } = usePortalStatus();
+  const unread = (items ?? []).some((item) => !item.is_read);
 
   async function markRead(id: number) {
+    const next = (items ?? []).map((item) => (item.id === id ? { ...item, is_read: true } : item));
+    setData(next);
+    setNotificationUnread(next.filter((item) => !item.is_read).length);
     await api.markNotificationRead(id);
-    setData(await api.notifications());
+  }
+
+  async function markAll() {
+    const previous = items ?? [];
+    setData(previous.map((item) => ({ ...item, is_read: true })));
+    setNotificationUnread(0);
+    try {
+      await api.markAllNotificationsRead();
+    } catch (err) {
+      setData(previous);
+      refresh();
+    }
   }
 
   return (
@@ -22,6 +39,7 @@ export default function EmployeeNotificationsPage() {
         eyebrow="Employee"
         title="Notifications"
         description="Alerts from the last 3 days — tasks, attendance, and updates."
+        action={unread ? <button type="button" className="btn-secondary" onClick={markAll}>Mark all as read</button> : null}
       />
       <NotificationsList items={items ?? []} onMarkRead={markRead} />
     </div>
