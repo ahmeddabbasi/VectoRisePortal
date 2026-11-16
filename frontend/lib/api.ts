@@ -34,6 +34,17 @@ export async function fetchAuthedBlob(path: string): Promise<Blob> {
   return res.blob();
 }
 
+export async function downloadCsv(path: string, filename: string) {
+  const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Could not download that export");
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function downloadAuthedFile(path: string, filename: string) {
   if (!path.startsWith("/api/media/tasks/")) return;
   const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
@@ -135,8 +146,11 @@ async function fetchJson<T>(
   auth = true,
   fetchOptions: FetchOptions = {},
 ): Promise<T> {
-  const cacheKey = `${options.method || "GET"}:${path}`;
-  if (!fetchOptions.fresh && (!options.method || options.method === "GET")) {
+  const method = options.method || "GET";
+  const oversight = path.startsWith("/api/oversight");
+  const cacheable = method === "GET" && !fetchOptions.fresh && !oversight;
+  const cacheKey = `${method}:${path}`;
+  if (cacheable) {
     const cached = responseCache.get(cacheKey);
     if (cached && cached.expires > Date.now()) return cached.data as T;
     const pending = inflight.get(cacheKey);
@@ -180,7 +194,9 @@ async function fetchJson<T>(
       return res.json();
     })
     .then((data) => {
-      if (!options.method || options.method === "GET") {
+      const method = options.method || "GET";
+      const oversight = path.startsWith("/api/oversight");
+      if (method === "GET" && !fetchOptions.fresh && !oversight) {
         responseCache.set(cacheKey, { expires: Date.now() + cacheTtl(path), data });
       }
       return data;
@@ -194,7 +210,7 @@ async function fetchJson<T>(
     })
     .finally(() => inflight.delete(cacheKey));
 
-  if (!options.method || options.method === "GET") inflight.set(cacheKey, request);
+  if (cacheable) inflight.set(cacheKey, request);
   return request as Promise<T>;
 }
 
@@ -406,6 +422,16 @@ export const api = {
       `/api/admin/team-assignments?team_lead_id=${teamLeadId}&employee_id=${employeeId}`,
       { method: "DELETE" },
     ),
+  oversightSummary: () => fetchJson<any>("/api/oversight/summary", {}, true, { fresh: true }),
+  oversightTeams: (query: string) => fetchJson<any>(`/api/oversight/teams${query}`, {}, true, { fresh: true }),
+  oversightTeam: (id: number) => fetchJson<any>(`/api/oversight/teams/${id}`, {}, true, { fresh: true }),
+  oversightTeamTasks: (id: number, query: string) => fetchJson<any>(`/api/oversight/teams/${id}/tasks${query}`, {}, true, { fresh: true }),
+  oversightTeamReviews: (id: number) => fetchJson<any>(`/api/oversight/teams/${id}/reviews`, {}, true, { fresh: true }),
+  oversightTeamActivity: (id: number, query: string) => fetchJson<any>(`/api/oversight/teams/${id}/activity${query}`, {}, true, { fresh: true }),
+  oversightEmployee: (id: number) => fetchJson<any>(`/api/oversight/employees/${id}`, {}, true, { fresh: true }),
+  oversightHierarchy: () => fetchJson<any>("/api/oversight/hierarchy", {}, true, { fresh: true }),
+  oversightActivity: (query: string) => fetchJson<any>(`/api/oversight/activity${query}`, {}, true, { fresh: true }),
+  oversightTrends: (query: string) => fetchJson<any>(`/api/oversight/trends${query}`, {}, true, { fresh: true }),
   employeeNotifications: () => fetchJson<any[]>("/api/notifications?days=3"),
   employeePerformance: () => fetchJson<any>("/api/employee/performance"),
 

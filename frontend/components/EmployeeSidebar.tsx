@@ -38,6 +38,8 @@ const links = [
 
   { href: "/employee/team", label: "My team", index: "T1" },
 
+  { href: "/employee/oversight", label: "Team oversight", index: "T2" },
+
   { href: "/employee/performance", label: "Performance", index: "05" },
 
   { href: "/employee/exceptions", label: "Exceptions", index: "06" },

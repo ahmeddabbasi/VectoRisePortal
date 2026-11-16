@@ -19,6 +19,10 @@ const SETTING_LABELS: Record<string, string> = {
   missed_schedule_penalty: "Missed schedule penalty points",
   default_start_time: "Default start time",
   default_end_time: "Default end time",
+  oversight_inactive_days: "Days without activity before a team is inactive",
+  oversight_task_overdue_days: "Days past a due date before an alert",
+  oversight_review_pending_days: "Days a completed task can wait for review",
+  oversight_review_period_days: "Days between performance reviews",
 };
 
 export default function AdminWorkforceSettingsPage() {

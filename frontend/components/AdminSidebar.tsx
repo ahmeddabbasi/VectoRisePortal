@@ -40,6 +40,8 @@ const workforceLinks = [
 
   { href: "/admin/tasks", label: "Tasks", index: "05" },
 
+  { href: "/admin/oversight", label: "Team oversight", index: "05b" },
+
   { href: "/admin/exceptions", label: "Exceptions", index: "06" },
 
   { href: "/admin/reports", label: "Reports", index: "07" },
